@@ -23,11 +23,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.BiConsumer
 
-
 @SpringBootApplication
 class EsLoadGeneratorApplication {
-
-    val numRows = parseInt(System.getProperty("numRows", "10000"))
 
     val executionStartTimes = ConcurrentHashMap<Long, Long>()
     val dpsByNumColumns = ConcurrentHashMap<Int, Double>()
@@ -61,6 +58,7 @@ class EsLoadGeneratorApplication {
     }
 
     private fun runBulkProcessor(client: RestHighLevelClient, numColumns: Int) {
+        val numRows = parseInt(System.getProperty("numRows", "10000"))
         println("numColumns = $numColumns, numRows=$numRows")
         val totalDocs = AtomicLong(0)
         val totalTime = AtomicLong(0)
@@ -73,7 +71,7 @@ class EsLoadGeneratorApplication {
             }
 
             override fun afterBulk(executionId: Long, request: BulkRequest, response: BulkResponse) {
-                val timeElapsed = System.currentTimeMillis() - executionStartTimes.get(executionId)!!
+                val timeElapsed = System.currentTimeMillis() - executionStartTimes[executionId]!!
                 val numActions = request.numberOfActions()
                 val cumulativeTime = totalTime.addAndGet(timeElapsed)
                 val cumulativeDocs = totalDocs.addAndGet(numActions.toLong())
