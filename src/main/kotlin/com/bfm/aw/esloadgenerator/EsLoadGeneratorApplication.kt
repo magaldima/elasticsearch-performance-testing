@@ -47,7 +47,7 @@ class EsLoadGeneratorApplication {
     fun cliRunner(restHighLevelClient: RestHighLevelClient): CommandLineRunner {
         return CommandLineRunner { _ ->
             run {
-                val numColumns = System.getProperty("numColumns", "400,200,100,50,10").split(",")
+                val numColumns = System.getProperty("numColumns", "800,400,200,100,50,10").split(",")
                 numColumns.forEach {
                     runBulkProcessor(restHighLevelClient, parseInt(it))
                 }
@@ -86,6 +86,8 @@ class EsLoadGeneratorApplication {
         val bulkProcessor = BulkProcessor
                 .Builder(BiConsumer { t, u -> client.bulkAsync(t, u) }, listener, threadPool)
                 .setBulkSize(ByteSizeValue(parseLong(System.getProperty("batchSize", "10")), ByteSizeUnit.MB))
+                .setBulkActions(-1)
+                .setConcurrentRequests(Integer.getInteger("concurrentRequests", 1))
                 .build()
         // run numRows index requests
         val rand = Random()
